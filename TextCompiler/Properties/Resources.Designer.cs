@@ -63,6 +63,36 @@ namespace TextCompiler.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap free_icon_compiler_8167773 {
+            get {
+                object obj = ResourceManager.GetObject("free-icon-compiler-8167773", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap free_icon_compiler_81677731 {
+            get {
+                object obj = ResourceManager.GetObject("free-icon-compiler-81677731", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap free_icon_compiler_81677732 {
+            get {
+                object obj = ResourceManager.GetObject("free-icon-compiler-81677732", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap free_icon_copy_3979334 {
             get {
                 object obj = ResourceManager.GetObject("free-icon-copy-3979334", resourceCulture);

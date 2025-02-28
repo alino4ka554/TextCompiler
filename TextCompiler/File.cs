@@ -12,16 +12,16 @@ namespace TextCompiler
         public int index;
         public string fileName;
         public string path;
-        public List<string> bufferOfData = new List<string>();
-        public int currentVersion = 0;
-        public bool isUndoRedo = false;
+        //public List<string> bufferOfData = new List<string>();
+        //public int currentVersion = 0;
+        //public bool isUndoRedo = false;
         public RichTextBox textBox {  get; set; }
-        public File(int index, string fileName, string path, string fileText)
+        public File(int index, string fileName, string path)
         {
             this.index = index;
             this.fileName = fileName;
             this.path = path;
-            this.bufferOfData.Add(fileText);
+            //this.bufferOfData.Add(fileText);
         }
     }
 }

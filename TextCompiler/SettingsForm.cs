@@ -19,6 +19,7 @@ namespace TextCompiler
             InitializeComponent();
             numericUpDown1.Value = (decimal)Settings.font.Size;
             comboBox1.Text = Settings.language;
+            Text = (Settings.language == "Русский") ? "Настройки" : "Settings";
             label1.Text = (Settings.language == "Русский") ? "Размер шрифта" : "Font Size";
             label2.Text = (Settings.language == "Русский") ? "Язык" : "Language";
             button1.Text = (Settings.language == "Русский") ? "Сохранить" : "Save";

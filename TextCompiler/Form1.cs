@@ -18,9 +18,11 @@ namespace TextCompiler
     {
         const string filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
         public int countOpenedFiles = 0;
+
         ToolStripLabel dateLabel;
         ToolStripLabel infoLabel;
         Timer timer;
+
         public List<File> files = new List<File>();
         public File file;
         public Form1()
@@ -116,10 +118,13 @@ namespace TextCompiler
 
         private void TabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int index = 0;
-            if(tabControl1.TabPages.Count > 1)
-                index = tabControl1.SelectedIndex;
-            file = files[index];
+            if (countOpenedFiles != 0)
+            {
+                int index = 0;
+                if (tabControl1.TabPages.Count > 1)
+                    index = tabControl1.SelectedIndex;
+                file = files[index];
+            }
         }
 
         public void ShowEditor(Panel panel, RichTextBox richTextBox)
@@ -129,9 +134,8 @@ namespace TextCompiler
             richTextBox.TextChanged += (s, e) => panel.Invalidate();
             richTextBox.VScroll += (s, e) => panel.Invalidate();
             richTextBox.SelectionChanged += (s, e) => panel.Invalidate();
-            //richTextBox.TextChanged += RichTextBox_TextChanged;
+            //richTextBox.TextChanged += (sender, e) => RichTextBox_TextChanged(sender, e, richTextBox);
         }
-
         private void RichTextBox_TextChanged(object sender, EventArgs e)
         {
             int index = tabControl1.SelectedIndex;
@@ -146,20 +150,20 @@ namespace TextCompiler
             //files[index].bufferOfData.Add(sender.ToString());
         }
 
+        //private void RichTextBox_TextChanged(object sender, EventArgs e, RichTextBox richTextBox)
+        //{
+        //    Analyzer analyzer = new Analyzer(richTextBox);
+        //    analyzer.HighlightSyntax();
+        //}
         public void InitializeCompiler(File file, string title, string fileText)
         {
             TabPage myTabPage = new TabPage(title);
             tabControl1.TabPages.Add(myTabPage);
-            Panel containerPanel = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = SystemColors.Window
-            };
             SplitContainer splitContainer = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Vertical,
-                IsSplitterFixed = true,  // отключает изменение размеров
+                IsSplitterFixed = true,  
             };
             int requiredWidth = TextRenderer.MeasureText("100", Settings.font).Width;
             splitContainer.SplitterDistance = requiredWidth;
@@ -179,11 +183,14 @@ namespace TextCompiler
             };
             splitContainer.Panel2.Controls.Add(richTextBox1);
             richTextBox1.Text = fileText;
-
             ShowEditor(panel, richTextBox1);
             file.textBox = richTextBox1;
             tabControl1.SelectedTab = myTabPage;
             this.file = file;
+
+            Analyzer analyzer = new Analyzer(richTextBox1);
+            analyzer.HighlightSyntax();
+
             Settings.UpdateFont(tabControl1);
         }
 
@@ -221,11 +228,6 @@ namespace TextCompiler
             if (countOpenedFiles == 0) tabControl1.TabPages.Clear();
             InitializeCompiler(file, title, fileText);
             countOpenedFiles++;
-        }
-
-        private void toolStripButton2_Click(object sender, EventArgs e)
-        {
-            OpenFile();
         }
 
         public void Undo()
@@ -271,15 +273,23 @@ namespace TextCompiler
             }
         }
 
+
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            OpenFile();
+        }
+
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            file?.textBox.Undo();
+            if (file != null)
+                Undo();
         }
 
 
         private void toolStripButton5_Click(object sender, EventArgs e)
         {
-            file?.textBox.Redo();
+            if(file!= null)
+                Redo();
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
@@ -349,52 +359,9 @@ namespace TextCompiler
             file?.textBox.Copy();
         }
 
-        public void Copy()
-        {
-            if (file.textBox.SelectedText == "")
-                return;
-            string textForCopy = file.textBox.SelectedText;
-            Clipboard.SetText(textForCopy);
-        }
-
-        public void Cut()
-        {
-            if (!string.IsNullOrEmpty(file.textBox.SelectedText))
-            {
-                // Сохраняем выделенный текст в буфер обмена
-                string textForCut = file.textBox.SelectedText;
-                Clipboard.SetText(textForCut);
-
-                // Сохраняем текущую позицию курсора
-                int selectionStart = file.textBox.SelectionStart;
-
-                // Удаляем выделенный текст
-                file.textBox.Text = file.textBox.Text.Remove(selectionStart, file.textBox.SelectionLength);
-
-                // Устанавливаем позицию курсора на то место, где было выделение
-                file.textBox.SelectionStart = selectionStart;
-                file.textBox.SelectionLength = 0;
-            }
-        }
-
         private void копироватьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             file?.textBox.Copy();
-        }
-
-        public void Paste()
-        {
-            if (Clipboard.ContainsText())
-            {
-                // Получаем текущую позицию курсора
-                int pos = file.textBox.SelectionStart;
-                // Получаем текст из буфера обмена
-                string clipboardText = Clipboard.GetText();
-                // Вставляем текст в нужное место
-                file.textBox.Text = file.textBox.Text.Insert(pos, clipboardText);
-                // Обновляем позицию курсора после вставленного текста
-                file.textBox.SelectionStart = pos + clipboardText.Length;
-            }
         }
 
         private void toolStripButton8_Click(object sender, EventArgs e)
@@ -447,9 +414,9 @@ namespace TextCompiler
                     System.IO.File.WriteAllText(file.path, file.textBox.Text);
                 }
             }
-            tabControl1.TabPages.Remove(tabControl1.SelectedTab);
             countOpenedFiles--;
             files.Remove(file);
+            tabControl1.TabPages.Remove(tabControl1.SelectedTab);
         }
 
         private void выходToolStripMenuItem_Click(object sender, EventArgs e)
@@ -470,16 +437,23 @@ namespace TextCompiler
 
         private void настройкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SettingsForm settingsForm = new SettingsForm();
-            settingsForm.ShowDialog();
-            if (settingsForm.update == true)
+            try
             {
-               
-                Settings.UpdateLanguage(this);
-                infoLabel.Text = (Settings.language == "Русский") ? "Текущие дата и время:" : "Current time and date";
-            } 
-            Settings.UpdateFont(tabControl1);
-            Settings.UpdateLineNumberPanelWidth(tabControl1);
+                SettingsForm settingsForm = new SettingsForm();
+                settingsForm.ShowDialog();
+                if (settingsForm.update == true)
+                {
+
+                    Settings.UpdateLanguage(this);
+                    infoLabel.Text = (Settings.language == "Русский") ? "Текущие дата и время:" : "Current time and date";
+                }
+                Settings.UpdateFont(tabControl1);
+                Settings.UpdateLineNumberPanelWidth(tabControl1);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"Произошла ошибка при изменении настроек: {ex.Message}");
+            }
         }
 
         private void tabControl1_DragEnter(object sender, DragEventArgs e)
@@ -523,6 +497,18 @@ namespace TextCompiler
         {
             Help help = new Help();
             help.ShowDialog();
+        }
+
+        private void оПрограммеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            About about = new About();
+            about.ShowDialog();
+        }
+
+        private void toolStripButton11_Click(object sender, EventArgs e)
+        {
+            About about = new About();
+            about.ShowDialog();
         }
     }
 }

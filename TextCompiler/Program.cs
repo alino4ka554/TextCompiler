@@ -13,6 +13,7 @@ namespace TextCompiler
         public static string language = "Русский";
         public static Dictionary<string, string> translations = new Dictionary<string, string>
         {
+            { "Compiler", "Компилятор" },
             { "File", "Файл" },
             { "Edit", "Правка" },
             { "Text", "Текст" },
@@ -42,7 +43,9 @@ namespace TextCompiler
             { "References", "Список литературы" },
             { "Source code", "Исходный код программы" },
             { "Error Window", "Окно ошибок" },
-            { "Output", "Вывод" }
+            { "Output", "Вывод" },
+            {"Line", "Строка" },
+            {"Error", "Ошибка" }
         };
         public static void LoadSettings()
         {
@@ -67,7 +70,6 @@ namespace TextCompiler
                 {
                     rtb.Font = newFont;
                 }
-                // Если контрол содержит дочерние контролы – обходим их
                 if (ctrl.HasChildren)
                 {
                     UpdateFontRecursive(ctrl, newFont);
@@ -84,13 +86,10 @@ namespace TextCompiler
 
         private static void UpdateMenuItem(ToolStripMenuItem item)
         {
-            // Переводим текст меню
             if (translations.ContainsKey(item.Text) || translations.ContainsValue(item.Text))
             {
                 item.Text = (language == "Русский") ? translations[item.Text] : translations.FirstOrDefault(x => x.Value == item.Text).Key;
             }
-
-            // Переводим подменю, если есть
             foreach (ToolStripItem subItem in item.DropDownItems)
             {
                 if (subItem is ToolStripMenuItem subMenuItem)
@@ -112,6 +111,16 @@ namespace TextCompiler
                 }
             }
         }
+        public static void UpdateDataGridView(DataGridView dataGridView)
+        {
+            foreach(DataGridViewColumn item in dataGridView.Columns)
+            {
+                if (translations.ContainsKey(item.HeaderText) || translations.ContainsValue(item.HeaderText))
+                {
+                    item.HeaderText = (language == "Русский") ? translations[item.HeaderText] : translations.FirstOrDefault(x => x.Value == item.HeaderText).Key;
+                }
+            }
+        }
         public static void UpdateLanguageRecursive(Control ctrl)
         {
             
@@ -123,12 +132,18 @@ namespace TextCompiler
                 }
                 if (childCtrl is ToolStrip toolStrip)
                     UpdateToolStrip(toolStrip);
+                if(childCtrl is DataGridView dataGridView)
+                    UpdateDataGridView(dataGridView);
                 if (childCtrl.HasChildren)
                     UpdateLanguageRecursive(childCtrl);
             }
         }
         public static void UpdateLanguage(Form form)
         {
+            if (translations.ContainsKey(form.Text) || translations.ContainsValue(form.Text))
+            {
+                form.Text = (language == "Русский") ? translations[form.Text] : translations.FirstOrDefault(x => x.Value == form.Text).Key;
+            }
             UpdateLanguageRecursive(form);
             if (form.MainMenuStrip != null)
             {
@@ -139,12 +154,9 @@ namespace TextCompiler
         {
             foreach (TabPage tab in tabControl.TabPages)
             {
-                // Ищем SplitContainer в текущей вкладке
                 SplitContainer sc = tab.Controls.OfType<SplitContainer>().FirstOrDefault();
                 if (sc != null)
                 {
-                    // Вычисляем требуемую ширину для панели нумерации.
-                    // Здесь, например, измеряем ширину строки "100" и добавляем небольшой отступ.
                     int requiredWidth = TextRenderer.MeasureText("100", font).Width + 10;
                     sc.SplitterDistance = requiredWidth;
                 }
