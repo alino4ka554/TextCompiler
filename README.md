@@ -2,7 +2,6 @@
 <html>
   <head>
 <meta charset="UTF-8">
-   <title>Руководство</title>
   </head>
   <body>
     <h1 align=center>Справка</h1>
