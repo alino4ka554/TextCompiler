@@ -134,27 +134,8 @@ namespace TextCompiler
             richTextBox.TextChanged += (s, e) => panel.Invalidate();
             richTextBox.VScroll += (s, e) => panel.Invalidate();
             richTextBox.SelectionChanged += (s, e) => panel.Invalidate();
-            //richTextBox.TextChanged += (sender, e) => RichTextBox_TextChanged(sender, e, richTextBox);
+            richTextBox.FontChanged += (s, e) => panel.Invalidate();
         }
-        private void RichTextBox_TextChanged(object sender, EventArgs e)
-        {
-            int index = tabControl1.SelectedIndex;
-            if (file.isUndoRedo)
-                return;
-            var rtb = sender as RichTextBox;
-            if (rtb == null) return;
-
-            // Сохраняем текущий текст в буфер
-            files[index].bufferOfData.Add(rtb.Text);
-            files[index].currentVersion = files[index].bufferOfData.Count - 1;
-            //files[index].bufferOfData.Add(sender.ToString());
-        }
-
-        //private void RichTextBox_TextChanged(object sender, EventArgs e, RichTextBox richTextBox)
-        //{
-        //    Analyzer analyzer = new Analyzer(richTextBox);
-        //    analyzer.HighlightSyntax();
-        //}
         public void InitializeCompiler(File file, string title, string fileText)
         {
             TabPage myTabPage = new TabPage(title);
@@ -188,9 +169,6 @@ namespace TextCompiler
             tabControl1.SelectedTab = myTabPage;
             this.file = file;
 
-            Analyzer analyzer = new Analyzer(richTextBox1);
-            analyzer.HighlightSyntax();
-
             Settings.UpdateFont(tabControl1);
         }
 
@@ -216,63 +194,21 @@ namespace TextCompiler
 
         public void OpenFile()
         {
+            openFileDialog1.FileName = string.Empty;
+            openFileDialog1.Title = (Settings.language == "Русский") ? "Открытие" : "Open";
             if (openFileDialog1.ShowDialog() == DialogResult.Cancel)
                 return;
-            // получаем выбранный файл
+
             string title = openFileDialog1.SafeFileName;
             string fileName = openFileDialog1.FileName;
-            // читаем файл в строку
+
             string fileText = System.IO.File.ReadAllText(fileName);
-            File file = new File(countOpenedFiles, title, fileName, fileText);
+            File file = new File(countOpenedFiles, title, fileName);
             files.Add(file);
             if (countOpenedFiles == 0) tabControl1.TabPages.Clear();
             InitializeCompiler(file, title, fileText);
             countOpenedFiles++;
         }
-
-        public void Undo()
-        {
-            if (file.currentVersion > 0)
-            {
-                // Сохраняем текущую позицию курсора и выделение
-                int selectionStart = file.textBox.SelectionStart;
-                int selectionLength = file.textBox.SelectionLength;
-
-                // Переходим к предыдущей версии
-                file.currentVersion--;
-                file.isUndoRedo = true;
-                file.textBox.Text = file.bufferOfData[file.currentVersion];
-                file.isUndoRedo = false;
-
-                // Если текст стал короче, корректируем позицию курсора
-                if (selectionStart > file.textBox.Text.Length)
-                    selectionStart = file.textBox.Text.Length;
-                file.textBox.SelectionStart = selectionStart;
-                file.textBox.SelectionLength = selectionLength;
-            }
-        }
-
-        public void Redo()
-        {
-            if (file.currentVersion < file.bufferOfData.Count - 1)
-            {
-                // Сохраняем текущую позицию курсора и выделение
-                int selectionStart = file.textBox.SelectionStart;
-                int selectionLength = file.textBox.SelectionLength;
-
-                file.currentVersion++;
-                file.isUndoRedo = true;
-                file.textBox.Text = file.bufferOfData[file.currentVersion];
-                file.isUndoRedo = false;
-
-                // Корректировка позиции курсора, если новый текст короче
-                if (selectionStart > file.textBox.Text.Length)
-                    selectionStart = file.textBox.Text.Length;
-                file.textBox.SelectionStart = selectionStart;
-                file.textBox.SelectionLength = selectionLength;
-            }
-        }
-
 
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
@@ -281,15 +217,13 @@ namespace TextCompiler
 
         private void toolStripButton4_Click(object sender, EventArgs e)
         {
-            if (file != null)
-                Undo();
+            file?.textBox.Undo();
         }
 
 
         private void toolStripButton5_Click(object sender, EventArgs e)
         {
-            if(file!= null)
-                Redo();
+            file?.textBox.Redo();
         }
 
         private void toolStripButton3_Click(object sender, EventArgs e)
@@ -307,6 +241,7 @@ namespace TextCompiler
         {
             if (tabControl1.TabPages.Count > 0)
             {
+                saveFileDialog1.Title = (Settings.language == "Русский") ? "Сохранить как" : "Save as";
                 string fileName = file.fileName;
                 saveFileDialog1.FileName = fileName;
                 if (saveFileDialog1.ShowDialog() == DialogResult.Cancel)
@@ -329,18 +264,18 @@ namespace TextCompiler
         {
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
             {
-                saveFileDialog.Title = "Создание";
+                saveFileDialog.Title = (Settings.language == "Русский") ? "Создание" : "Create";
                 saveFileDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                // Отключаем предупреждение о перезаписи
-                saveFileDialog.OverwritePrompt = false;
+
+                saveFileDialog.OverwritePrompt = true;
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string filePath = saveFileDialog.FileName;
-                    // Записываем текст в файл (перезапись, если файл уже существует)
+
                     System.IO.File.WriteAllText(filePath, "");
                     string fileName = System.IO.Path.GetFileName(saveFileDialog.FileName);
                     string path = saveFileDialog.FileName;
-                    File file = new File(countOpenedFiles, fileName, path, null);
+                    File file = new File(countOpenedFiles, fileName, path);
                     files.Add(file);
                     if (countOpenedFiles == 0) tabControl1.TabPages.Clear();
                     InitializeCompiler(file, fileName, null);
@@ -406,9 +341,10 @@ namespace TextCompiler
         }
         public void Exit()
         {
+            string question = (Settings.language == "Русский") ? "Сохранить изменения в файл" : "Save the changes to a file";
             if (System.IO.File.ReadAllText(file.path) != file.textBox.Text)
             {
-                DialogResult result = MessageBox.Show($"Сохранить изменения в файл {file.fileName}?", "Закрытие файла", MessageBoxButtons.YesNo);
+                DialogResult result = MessageBox.Show($"{question} {file.fileName}?", "Закрытие файла", MessageBoxButtons.YesNo);
                 if (result == DialogResult.Yes)
                 {
                     System.IO.File.WriteAllText(file.path, file.textBox.Text);
@@ -478,7 +414,7 @@ namespace TextCompiler
                     string path = fileForDrop.ToString();
                     string title = Path.GetFileName(path);
                     string fileText = System.IO.File.ReadAllText(path);
-                    File file = new File(countOpenedFiles, title, path, fileText);
+                    File file = new File(countOpenedFiles, title, path);
                     files.Add(file);
                     if (countOpenedFiles == 0) tabControl1.TabPages.Clear();
                     InitializeCompiler(file, title, fileText);
