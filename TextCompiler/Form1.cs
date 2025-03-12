@@ -446,5 +446,28 @@ namespace TextCompiler
             About about = new About();
             about.ShowDialog();
         }
+        public void Analyze()
+        {
+            dataGridView1.DataSource = null;
+            dataGridView1.Rows.Clear();
+            if (file != null)
+            {
+                Scanner scaner = new Scanner(file.textBox.Text);
+                scaner.Analyze();
+                foreach (DataRow row in scaner.dataTable.Rows)
+                {
+                    dataGridView1.Rows.Add(row.ItemArray);
+                }
+            }
+        }
+        private void toolStripButton9_Click(object sender, EventArgs e)
+        {
+            Analyze();
+        }
+
+        private void пускToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Analyze();
+        }
     }
 }
