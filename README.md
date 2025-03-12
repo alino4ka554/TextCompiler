@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
   </head>
   <body>
+	  <p align="center">
+ <img src="диаграмма.png" alt="qr"/>
+</p>
     <h1 align=center>Справка</h1>
     <font size=4>
 	<h2>Работа с файлами</h2>
