@@ -46,7 +46,7 @@ namespace TextCompiler
                             status = 1;
                         else if (char.IsWhiteSpace(str[position]))
                         {
-                            if (position >= 4 && str.Substring(position - 5, 5).Contains("const"))
+                            if (position >= 5 && str.Substring(position - 5, 5).Contains("const"))
                                 status = 2;
                             else
                                 position++;
