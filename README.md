@@ -26,6 +26,13 @@
 <p align="center">
  <img src="диаграмма.png" alt="qr"/>
 </p>
+<h2>Тестовые примеры</h2>
+<p align="center">
+ <img src="photo_2025-03-13_19-11-53.jpg" alt="qr"/>
+</p>
+<p align="center">
+ <img src="image.png" alt="qr"/>
+</p>
     <h1 align=center>Справка</h1>
     <font size=4>
 	<h2>Работа с файлами</h2>
