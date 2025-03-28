@@ -174,18 +174,26 @@ namespace TextCompiler
 
         private void LineNumberPanel_Paint(object sender, PaintEventArgs e, RichTextBox richTextBox)
         {
+            e.Graphics.Clear(((Panel)sender).BackColor); // Очищаем фон перед отрисовкой
+
             int firstIndex = richTextBox.GetCharIndexFromPosition(new Point(0, 0));
             int firstLine = richTextBox.GetLineFromCharIndex(firstIndex);
+
+            int totalLines = richTextBox.Lines.Length;
+            if (totalLines == 0) totalLines = 1; // Гарантируем, что хотя бы строка "1" отобразится
 
             int lineHeight = TextRenderer.MeasureText("0", richTextBox.Font).Height;
             int y = 0;
 
-            for (int i = firstLine; y < richTextBox.Height; i++)
+            for (int i = firstLine; i < totalLines; i++)
             {
                 y = (i - firstLine) * lineHeight;
                 e.Graphics.DrawString((i + 1).ToString(), richTextBox.Font, Brushes.Black, new PointF(5, y));
+
+                if (y > richTextBox.Height) break; // Останавливаемся, если вышли за границы
             }
         }
+
 
         private void открытьToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -384,6 +392,7 @@ namespace TextCompiler
                     infoLabel.Text = (Settings.language == "Русский") ? "Текущие дата и время:" : "Current time and date";
                 }
                 Settings.UpdateFont(tabControl1);
+                Settings.UpdateFont(tabControl2);
                 Settings.UpdateLineNumberPanelWidth(tabControl1);
             }
             catch(Exception ex)
@@ -452,12 +461,13 @@ namespace TextCompiler
             dataGridView1.Rows.Clear();
             if (file != null)
             {
-                Scanner scaner = new Scanner(file.textBox.Text);
-                scaner.Analyze();
-                foreach (DataRow row in scaner.dataTable.Rows)
+                Scanner scanner = new Scanner(file.textBox.Text);
+                scanner.Analyze();
+                foreach (DataRow row in scanner.dataTable.Rows)
                 {
                     dataGridView1.Rows.Add(row.ItemArray);
                 }
+                richTextBox1.Text = string.Join(" - ", scanner.codes);
             }
         }
         private void toolStripButton9_Click(object sender, EventArgs e)

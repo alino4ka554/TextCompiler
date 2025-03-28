@@ -13,7 +13,6 @@ namespace TextCompiler
         public static string language = "Русский";
         public static Dictionary<string, string> translations = new Dictionary<string, string>
         {
-            { "Compiler", "Компилятор" },
             { "File", "Файл" },
             { "Edit", "Правка" },
             { "Text", "Текст" },
@@ -43,9 +42,14 @@ namespace TextCompiler
             { "References", "Список литературы" },
             { "Source code", "Исходный код программы" },
             { "Error Window", "Окно ошибок" },
+            { "Splitting by tokens", "Разбиение по лексемам" },
             { "Output", "Вывод" },
-            {"Line", "Строка" },
-            {"Error", "Ошибка" }
+            { "Conditional code", "Условный код" },
+            { "Type of token", "Тип лексемы" },
+            { "The token", "Лексема" },
+            { "Location", "Местоположение" },
+            { "Line", "Строка" },
+            { "Error", "Ошибка" }
         };
         public static void LoadSettings()
         {
