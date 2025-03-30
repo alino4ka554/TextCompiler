@@ -8,7 +8,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace TextCompiler
 {
-    enum State
+    public enum State
     {
         Start, Space, Id, IdRem, Real, Equal, Num, Int, IntRem, Decimal, DecRem, End
     }
@@ -16,12 +16,7 @@ namespace TextCompiler
     {
         private State state = State.Start;
         private List<Error> errors = new List<Error>();
-        private Error currentError = null;
-        private bool isError = false;
         private string text;
-        private bool isConst = false;
-        private string id;
-        private string errorText;
 
         public Parser(string _text)
         {
@@ -32,158 +27,150 @@ namespace TextCompiler
         {
             return errors;
         }
+        
+        public void AddError(string text, string symbol, int position, ref int index)
+        {
+            errors.Add(new Error(text, symbol, position));
+            
+        }
         public void Analyze()
         {
+            Scanner scanner = new Scanner(text);
+            scanner.Analyze();
+            List<Token> tokens = scanner.GetTokens();
             int position = 0;
-            while(position < text.Length)
+
+            state = State.Start;
+            while (position < tokens.Count)
             {
-                if (text[position] == ' ' && isConst == false)
-                    position++;
-                /*if (isError == false && currentError != null)
-                {
-                    errors.Add(currentError);
-                    currentError = null;
-                }*/
+                Token token = tokens[position];
+
                 switch (state)
                 {
                     case State.Start:
-                        if (text.Substring(position).StartsWith("const"))
+                        if (token.type != type.CONST)
                         {
-                            position += 4;
-                            isConst = true;
+                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position, ref position);
+                            state = State.Id;
                         }
-                        state = State.Space;
+                        else
+                            state = State.Space;
                         break;
+
                     case State.Space:
-                        if (text[position] != ' ' || isConst == false)
-                            errors.Add(new Error("Ожидалось ключевое слово const"));
-                        isConst = false;
+                        if (token.type != type.SPACE)
+                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position, ref position);
                         state = State.Id;
                         break;
+
                     case State.Id:
-                        if (Regex.IsMatch(text.Substring(position), "^[A-Za-z]"))
-                        {
-                            id += text[position];
-                            state = State.IdRem;
-                            isError = false;
-                        }
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
+                        if (token.type != type.ID)
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position, ref position);
+                        state = State.Real;
                         break;
-                    case State.IdRem:
-                        if (Regex.IsMatch(text.Substring(position), "^[A-Za-z0-9]"))
-                        {
-                            id += text[position];
-                            isError = false;
-                        }
-                        else if (text[position] == ':')
+
+                    case State.Real:
+                        if (token.type == type.SYMBOL)
                         {
                             state = State.Real;
-                            isError = false;
+                            break;
                         }
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
+                        else if (token.type != type.REAL)
+                        {
+                            state = GetState(token);
+                            while (position < tokens.Count - 1 && state != State.Real && state != State.Equal && state != State.Num && state != State.End)
+                            {
+                                position++;
+                                token = tokens[position];
+                                state = GetState(token);
+                            }
+                            if (state != State.Real)
+                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position, ref position);
+                            continue;
+                        }
+                        else state = State.Equal;
+                        
                         break;
-                    case State.Real:
-                        if (text.Substring(position).StartsWith("real"))
-                            position += 3;
-                        else AddError("Ожидалось ключевое слово real", text[position].ToString(), position);
-                        state = State.Equal;
-                        break;
+
                     case State.Equal:
-                        if (text[position] == '=')
+                        if (token.type != type.EQUAL)
+                        {
+                            state = GetState(token);
+                            while (position < tokens.Count - 1 && state != State.Equal && state != State.Num && state != State.End)
+                            {
+                                position++;
+                                token = tokens[position];
+                                state = GetState(token);
+                            }
+                            if (state != State.Equal)
+                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position, ref position);
+                            continue;
+                        }
+                        else state = State.Num;
+                        break;
+
+                    case State.Num:
+                        if (token.type == type.SIGN)
+                        {
+                            state = State.Num;
+                            break;
+                        }
+                        else if (token.type != type.INT && token.type != type.DECIMAL)
                         {
                             
-                            isError = false;
-                        }
-                        else AddError("Ожидался оператор присваивания", text[position].ToString(), position);
-                        state = State.Num;
-                        break;
-                    case State.Num:
-                        if (text[position] == '+' || text[position] == '-')
-                        {
-                            state = State.Int;
-                            isError = false;
-                        }
-                        else if (char.IsDigit(text[position]))
-                        {
-                            state = State.IntRem;
-                            isError = false;
-                        }
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
-                        break;
-                    case State.Int:
-                        if (char.IsDigit(text[position]))
-                            state = State.IntRem;
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
-                        break;
-                    case State.IntRem:
-                        if (char.IsDigit(text[position]))
-                        {
-                            isError = false;
-                            state = State.IntRem;
-                        }
-                        else if (text[position] == '.')
-                        {
-                            isError = false;
-                            state = State.Decimal;
-                        }
-                        else if (text[position] == ';')
-                        {
-                            if (isError && currentError != null)
+                            state = GetState(token);
+                            while (position < tokens.Count - 1 && state != State.Num && state != State.End)
                             {
-                                errors.Add(currentError);
-                                currentError = null;
+                                position++;
+                                token = tokens[position];
+                                state = GetState(token);
                             }
-                            isError = false;
-                            state = State.End;
+                            if (state != State.Num)
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position, ref position);
+                            continue;
+
                         }
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
+                        else state = State.End;
                         break;
-                    case State.Decimal:
-                        if (char.IsDigit(text[position]))
-                        {
-                            state = State.DecRem;
-                            isError = false;
-                        }
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
-                        break;
-                    case State.DecRem:
-                        if ((char.IsDigit(text[position])))
-                        {
-                            isError = false;
-                            state = State.DecRem;
-                        }
-                        else if (text[position] == ';')
-                        {
-                            if (isError && currentError != null) 
-                            {
-                                errors.Add(currentError);
-                                currentError = null;
-                            }
-                            isError = false;
-                            state = State.End;
-                        }
-                        else AddError("Неожиданный символ", text[position].ToString(), position);
-                        break;
+
                     case State.End:
+                        if (token.type != type.END)
+                            AddError("Ожидалась ';'", text[token.position].ToString(), token.position, ref position);
                         state = State.Start;
                         break;
                 }
                 position++;
             }
+            foreach(var error in scanner.errorList)
+                errors.Add(error);
         }
-        public void AddError(string text, string symbol, int position)
+
+        private State GetState(Token token)
         {
-            if (isError)
-                currentError.BeginOfError += symbol;
-            else
+            switch(token.type)
             {
-                if(currentError != null)
-                    errors.Add(currentError);
-                currentError = new Error(text, symbol, position);
-                isError = true;
+                case type.CONST:
+                    return State.Id;
+                case type.ID:
+                    return State.Id;
+                case type.INT:
+                    return State.Num;
+                case type.DECIMAL: 
+                    return State.Num;
+                case type.SIGN:
+                    return State.Num;
+                case type.REAL: 
+                    return State.Real;
+                case type.EQUAL: 
+                    return State.Equal;
+                case type.END:
+                    return State.End;
+                default:
+                    return State.End;
             }
         }
+
     }
-        
-    }
+
+}
 

@@ -12,23 +12,28 @@ namespace TextCompiler
             { "const", 1 },
             { "real", 3 }
         };
-        private Dictionary<char, (int, string)> symbols = new Dictionary<char, (int, string)>()
+        private Dictionary<char, (int, type)> symbols = new Dictionary<char, (int, type)>()
                     {
-                        { ':', (5, "символ") },
-                        { '=', (6, "оператор присваивания") },
-                        { '-', (7, "знак -") },
-                        { '+', (8, "знак +") },
-                        { ';', (11, "конец оператора") }
+                        { ':', (5, type.SYMBOL) },
+                        { '=', (6, type.EQUAL) },
+                        { '-', (7, type.SIGN) },
+                        { '+', (8, type.SIGN) },
+                        { ';', (11, type.END) }
                     };
         public List<string> codes = new List<string> ();
+        private List<Token> tokens = new List<Token> ();
+        public List<Error> errorList = new List<Error> ();
         private bool afterConst = false;
         public DataTable dataTable { get; set; } = new DataTable();
         public Scanner(string text)
         {
-            Text = text;
+            Text = text.Replace("\t", " ").Replace("\n", " ");
             InitializeTable();
         }
-
+        public List<Token> GetTokens()
+        {
+            return tokens;
+        }
         private void InitializeTable()
         {
             dataTable.Columns.AddRange(new[]
@@ -40,85 +45,87 @@ namespace TextCompiler
             });
         }
 
-        private void AddToken(int code, string type, string value, int start, int end)
+        private void AddToken(type type, int code, int position)
         {
-            dataTable.Rows.Add(code, type, value, $"с {start + 1} по {end} символ");
-            for(int i = start; i < end; i++)
-                if (code != 12)
-                    codes.Add(code.ToString());
+            tokens.Add(new Token(type, code, position));
+        }
+
+        public void ErrorReading(ref int position)
+        {
+            int startIndex = position;
+            string errorText = null;
+            while (GetStatus(Text[position]) == 5)
+            {
+                errorText += Text[position].ToString();
+                position++;
+            }
+            errorList.Add(new Error("Неожиданный символ", errorText, startIndex));
         }
 
         public void Analyze()
         {
-            string str = Text.Replace("\t", " ").Replace("\n", " ");
             int position = 0;
             int status = 0;
 
-            while (position < str.Length)
+            while (position < Text.Length)
             {
                 switch(status)
                 {
                     case 0:
-                        status = GetStatus(str[position]);
-                        if (codes.Count == 0)
-                            codes.Add("0");
-                        else if (status != 5)
-                        {
-                            if (status == 2 && !afterConst)
-                                position++;
-                            else
-                                codes.Add("START");
-                        }
+                        status = GetStatus(Text[position]);
+                        if (status == 2 && !afterConst)
+                            position++;
                         break;
                     case 1:
                         int start = position;
                         string word = "";
 
-                        while (position < str.Length && char.IsLetterOrDigit(str[position]) && str[position] >= 48 && str[position] <= 122)
-                            word += str[position++];
+                        while (position < Text.Length && char.IsLetterOrDigit(Text[position]) && Text[position] >= 48 && Text[position] <= 122)
+                            word += Text[position++];
                         int code = KeyWords.TryGetValue(word, out int kwCode) ? kwCode : 2;
-                        string type = KeyWords.ContainsKey(word) ? "ключевое слово" : "идентификатор";
-                        AddToken(code, type, word, start, position);
+                        type type = KeyWords.ContainsKey(word) ? word == "const" ? type.CONST : type.REAL : type.ID;
+                        AddToken(type, code, start);
                         afterConst = (word == "const");
-                        status = 6;
+                        status = 0;
                         break;
                     case 2:
                         if (afterConst)
                         {
-                            AddToken(4, "разделитель", " ", position, position + 1);
+                            AddToken(type.SPACE, 4, position);
                             afterConst = false;
                             position++;
-                            status = 6;
+                            status = 0;
                         }
                         else status = 0;
                         
                         break;
                     case 3:
-                        AddToken(symbols[str[position]].Item1, symbols[str[position]].Item2, str[position].ToString(), position, position + 1);
+                        AddToken(symbols[Text[position]].Item2, symbols[Text[position]].Item1, position);
                         position++;
-                        status = 6;
+                        status = 0;
                         break;
                     case 4:
                         start = position;
                         string number = "";
 
-                        while (position < str.Length && char.IsDigit(str[position]))
-                            number += str[position++];
+                        while (position < Text.Length && char.IsDigit(Text[position]))
+                            number += Text[position++];
 
-                        if (position + 1 < str.Length && str[position] == '.' && char.IsDigit(str[position + 1]))
+                        if (position + 1 < Text.Length && Text[position] == '.' && char.IsDigit(Text[position + 1]))
                         {
-                            number += str[position++];
-                            while (position < str.Length && char.IsDigit(str[position]))
-                                number += str[position++];
+                            number += Text[position++];
+                            while (position < Text.Length && char.IsDigit(Text[position]))
+                                number += Text[position++];
                         }
 
                         code = number.Contains(".") ? 10 : 9;
-                        AddToken(code, code == 10 ? "вещественное число" : "целое без знака", number, start, position);
-                        status = 6;
+                        AddToken(code == 10 ? type.DECIMAL : type.INT, code, start);
+                        status = 0;
                         break;
                     case 5:
-                        AddToken(12, "ERROR: недопустимый символ", str[position].ToString(), position, position + 1);
-                        return;
+                        ErrorReading(ref position);
+                        status = 0;
+                        break;
                     case 6:
                         codes.Add("OUT");
                         status = 0;

@@ -17,13 +17,5 @@ namespace TextCompiler
             this.BeginOfError = beginOfError;
             this.Position = position;
         }
-        public Error(string message)
-        {
-            this.Message = message;
-        }
-        public string ToString()
-        {
-            return $"{Message}: '{BeginOfError}' (позиция {Position}) \n";
-        }
     }
 }

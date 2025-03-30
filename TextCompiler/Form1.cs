@@ -457,27 +457,33 @@ namespace TextCompiler
         }
         public void Analyze()
         {
-            /*dataGridView1.DataSource = null;
+            dataGridView1.DataSource = null;
             dataGridView1.Rows.Clear();
-            if (file != null)
-            {
-                Scanner scanner = new Scanner(file.textBox.Text);
-                scanner.Analyze();
-                foreach (DataRow row in scanner.dataTable.Rows)
-                {
-                    dataGridView1.Rows.Add(row.ItemArray);
-                }
-                richTextBox1.Text = string.Join(" - ", scanner.codes);
-            }*/
-            richTextBox1.Text = string.Empty;
             if (file != null)
             {
                 Parser parser = new Parser(file.textBox.Text);
                 parser.Analyze();
-                foreach(var error in parser.GetErrors())
+                var sortedErrors = parser.GetErrors().OrderBy(e => e.Position).ToList();
+                if(sortedErrors.Count > 0)
+                    tabControl2.TabPages[0].Text = $"Обнаружено {sortedErrors.Count} ошибок";
+                else
+                    tabControl2.TabPages[0].Text = $"Ошибок не обнаружено";
+                foreach (var error in sortedErrors)
                 {
-                    richTextBox1.Text += error.ToString();
+                    dataGridView1.Rows.Add(error.Message, error.BeginOfError, error.Position);
                 }
+                HighlightErrors(file.textBox, sortedErrors);
+            }
+        }
+        public void HighlightErrors(RichTextBox richTextBox, List<Error> errors)
+        {
+            richTextBox.SelectAll();
+            richTextBox.SelectionBackColor = richTextBox.BackColor;
+
+            foreach (var error in errors)
+            {
+                richTextBox.Select(error.Position, 1);
+                richTextBox.SelectionBackColor = Color.Red; 
             }
         }
         private void toolStripButton9_Click(object sender, EventArgs e)
