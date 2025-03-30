@@ -54,7 +54,7 @@ namespace TextCompiler
         {
             int startIndex = position;
             string errorText = null;
-            while (GetStatus(Text[position]) == 5)
+            while (position < Text.Length && GetStatus(Text[position]) == 5)
             {
                 errorText += Text[position].ToString();
                 position++;

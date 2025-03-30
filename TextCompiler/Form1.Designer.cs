@@ -447,7 +447,7 @@
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage1.Size = new System.Drawing.Size(829, 164);
             this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "Разбиение по лексемам";
+            this.tabPage1.Text = "Вывод";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // dataGridView1

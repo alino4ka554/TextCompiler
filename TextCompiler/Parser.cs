@@ -28,7 +28,7 @@ namespace TextCompiler
             return errors;
         }
         
-        public void AddError(string text, string symbol, int position, ref int index)
+        public void AddError(string text, string symbol, int position)
         {
             errors.Add(new Error(text, symbol, position));
             
@@ -50,7 +50,7 @@ namespace TextCompiler
                     case State.Start:
                         if (token.type != type.CONST)
                         {
-                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position, ref position);
+                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position);
                             state = State.Id;
                         }
                         else
@@ -59,24 +59,37 @@ namespace TextCompiler
 
                     case State.Space:
                         if (token.type != type.SPACE)
-                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position, ref position);
+                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position);
                         state = State.Id;
                         break;
 
                     case State.Id:
                         if (token.type != type.ID)
-                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position, ref position);
-                        state = State.Real;
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                        state = State.IdRem;
                         break;
 
-                    case State.Real:
-                        if (token.type == type.SYMBOL)
+                    case State.IdRem:
+                        if (token.type != type.SYMBOL)
                         {
-                            state = State.Real;
-                            break;
+                            var currentState = state;
+                            state = GetState(token);
+                            while (position < tokens.Count - 1 && state != State.IdRem && state != State.Real && state != State.Equal && state != State.Num && state != State.End)
+                            {
+                                position++;
+                                token = tokens[position];
+                                state = GetState(token);
+                            }
+                            if (state != State.IdRem)
+                                AddErrorForMissingTokens(token, currentState);
+                            continue;
                         }
-                        else if (token.type != type.REAL)
+                        else state = State.Real;
+                        break;
+                    case State.Real:
+                        if (token.type != type.REAL)
                         {
+                            var currentState = state;
                             state = GetState(token);
                             while (position < tokens.Count - 1 && state != State.Real && state != State.Equal && state != State.Num && state != State.End)
                             {
@@ -85,7 +98,7 @@ namespace TextCompiler
                                 state = GetState(token);
                             }
                             if (state != State.Real)
-                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position, ref position);
+                                AddErrorForMissingTokens(token, currentState);
                             continue;
                         }
                         else state = State.Equal;
@@ -95,6 +108,7 @@ namespace TextCompiler
                     case State.Equal:
                         if (token.type != type.EQUAL)
                         {
+                            var currentState = state;
                             state = GetState(token);
                             while (position < tokens.Count - 1 && state != State.Equal && state != State.Num && state != State.End)
                             {
@@ -103,7 +117,7 @@ namespace TextCompiler
                                 state = GetState(token);
                             }
                             if (state != State.Equal)
-                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position, ref position);
+                                AddErrorForMissingTokens(token, currentState);
                             continue;
                         }
                         else state = State.Num;
@@ -126,7 +140,7 @@ namespace TextCompiler
                                 state = GetState(token);
                             }
                             if (state != State.Num)
-                                AddError("Ожидалось число", text[token.position].ToString(), token.position, ref position);
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
                             continue;
 
                         }
@@ -135,7 +149,7 @@ namespace TextCompiler
 
                     case State.End:
                         if (token.type != type.END)
-                            AddError("Ожидалась ';'", text[token.position].ToString(), token.position, ref position);
+                            AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
                         state = State.Start;
                         break;
                 }
@@ -169,7 +183,81 @@ namespace TextCompiler
                     return State.End;
             }
         }
-
+        private void AddErrorForMissingTokens(Token token, State state)
+        {
+            switch(state)
+            {
+                case State.IdRem:
+                    switch (token.type)
+                    {
+                        case type.REAL: 
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            break;
+                        case type.EQUAL:
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            break;
+                        case type.INT:
+                        case type.DECIMAL:
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            break;
+                        case type.END:
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                            break;
+                        default:
+                            token.type = type.END;
+                            AddErrorForMissingTokens(token, state);
+                            break;
+                    }
+                    break;
+                case State.Real:
+                    switch (token.type)
+                    {
+                        case type.EQUAL:
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            break;
+                        case type.INT:
+                        case type.DECIMAL:
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            break;
+                        case type.END:
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                            break;
+                    }
+                    break;
+                case State.Equal:
+                    switch (token.type)
+                    {
+                        case type.INT:
+                        case type.DECIMAL:
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            break;
+                        case type.END:
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                            break;
+                    }
+                    break;
+                case State.Num:
+                    switch (token.type)
+                    {
+                        case type.END:
+                            AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                            break;
+                    }
+                    break;
+            }
+        }
     }
 
 }
