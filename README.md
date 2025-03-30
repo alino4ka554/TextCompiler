@@ -59,6 +59,7 @@ VN = {‹START›, ‹SPACE›, ‹ID›, ‹IDREM›, ‹REAL›, ‹EQUAL›, 
 ![Тест 2](image.png)
 ![Тест 3](image3.jpg)
 ![Тест 4](image4.jpg)
+![Тест 5](image5.jpg)
 
 # Справка
 
