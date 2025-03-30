@@ -457,7 +457,7 @@ namespace TextCompiler
         }
         public void Analyze()
         {
-            dataGridView1.DataSource = null;
+            /*dataGridView1.DataSource = null;
             dataGridView1.Rows.Clear();
             if (file != null)
             {
@@ -468,6 +468,16 @@ namespace TextCompiler
                     dataGridView1.Rows.Add(row.ItemArray);
                 }
                 richTextBox1.Text = string.Join(" - ", scanner.codes);
+            }*/
+            richTextBox1.Text = string.Empty;
+            if (file != null)
+            {
+                Parser parser = new Parser(file.textBox.Text);
+                parser.Analyze();
+                foreach(var error in parser.GetErrors())
+                {
+                    richTextBox1.Text += error.ToString();
+                }
             }
         }
         private void toolStripButton9_Click(object sender, EventArgs e)
