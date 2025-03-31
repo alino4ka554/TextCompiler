@@ -45,7 +45,7 @@ namespace TextCompiler
             });
         }
 
-        private void AddToken(type type, int code, int position)
+        private void AddToken(type type, string code, int position)
         {
             tokens.Add(new Token(type, code, position));
         }
@@ -84,14 +84,14 @@ namespace TextCompiler
                             word += Text[position++];
                         int code = KeyWords.TryGetValue(word, out int kwCode) ? kwCode : 2;
                         type type = KeyWords.ContainsKey(word) ? word == "const" ? type.CONST : type.REAL : type.ID;
-                        AddToken(type, code, start);
+                        AddToken(type, word, start);
                         afterConst = (word == "const");
                         status = 0;
                         break;
                     case 2:
                         if (afterConst)
                         {
-                            AddToken(type.SPACE, 4, position);
+                            AddToken(type.SPACE, Text[position].ToString(), position);
                             afterConst = false;
                             position++;
                             status = 0;
@@ -100,7 +100,7 @@ namespace TextCompiler
                         
                         break;
                     case 3:
-                        AddToken(symbols[Text[position]].Item2, symbols[Text[position]].Item1, position);
+                        AddToken(symbols[Text[position]].Item2, Text[position].ToString(), position);
                         position++;
                         status = 0;
                         break;
@@ -119,7 +119,7 @@ namespace TextCompiler
                         }
 
                         code = number.Contains(".") ? 10 : 9;
-                        AddToken(code == 10 ? type.DECIMAL : type.INT, code, start);
+                        AddToken(code == 10 ? type.DECIMAL : type.INT, number, start);
                         status = 0;
                         break;
                     case 5:

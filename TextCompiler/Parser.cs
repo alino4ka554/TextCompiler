@@ -16,6 +16,8 @@ namespace TextCompiler
     {
         private State state = State.Start;
         private List<Error> errors = new List<Error>();
+        private string textError = null;
+        public bool isSymbol = false;
         private string text;
 
         public Parser(string _text)
@@ -65,8 +67,40 @@ namespace TextCompiler
 
                     case State.Id:
                         if (token.type != type.ID)
-                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
-                        state = State.IdRem;
+                        {
+                            var currentState = state;
+                            state = GetState(token);
+                            textError = token.code;
+                            while (position < tokens.Count - 1 && state != State.Id && state != State.IdRem && state != State.Real && state != State.Equal && state != State.Num && state != State.End)
+                            {
+                                position++;
+                                token = tokens[position];
+                                textError += token.code;
+                                state = GetState(token);
+                            }
+                            if (state != State.Id)
+                            {
+                                if (token.type != type.ID)
+                                {
+                                    var tokenReal = IsValueString(tokens, type.ID);
+                                    if (tokenReal != null)
+                                    {
+                                        position = tokens.IndexOf(tokenReal);
+                                        token = tokens[position];
+                                        state = GetState(token);
+                                        AddError("Неожиданный символ", textError, token.position);
+                                    }
+                                    else
+                                    {
+                                        AddErrorForMissingTokens(token, currentState);
+                                    }
+                                }
+
+                            }
+                            continue;
+                        }
+                        else 
+                            state = State.IdRem;
                         break;
 
                     case State.IdRem:
@@ -74,14 +108,34 @@ namespace TextCompiler
                         {
                             var currentState = state;
                             state = GetState(token);
+                            textError = token.code;
                             while (position < tokens.Count - 1 && state != State.IdRem && state != State.Real && state != State.Equal && state != State.Num && state != State.End)
                             {
                                 position++;
                                 token = tokens[position];
+                                textError += token.code;
                                 state = GetState(token);
                             }
+                            
                             if (state != State.IdRem)
-                                AddErrorForMissingTokens(token, currentState);
+                            {
+                                if (token.type != type.SYMBOL)
+                                {
+                                    var tokenReal = IsValueString(tokens, type.SYMBOL);
+                                    if (tokenReal != null)
+                                    {
+                                        position = tokens.IndexOf(tokenReal);
+                                        token = tokens[position];
+                                        state = GetState(token);
+                                        AddError("Неожиданный символ", textError, token.position);
+                                    }
+                                    else
+                                    {
+                                        AddErrorForMissingTokens(token, currentState);
+                                    }
+                                }
+                                
+                            }
                             continue;
                         }
                         else state = State.Real;
@@ -91,14 +145,31 @@ namespace TextCompiler
                         {
                             var currentState = state;
                             state = GetState(token);
+                            textError = token.code;
                             while (position < tokens.Count - 1 && state != State.Real && state != State.Equal && state != State.Num && state != State.End)
                             {
                                 position++;
                                 token = tokens[position];
+                                textError += token.code;
                                 state = GetState(token);
                             }
                             if (state != State.Real)
-                                AddErrorForMissingTokens(token, currentState);
+                            {
+                                if (token.type != type.REAL)
+                                {
+                                    var tokenReal = IsValueString(tokens, type.REAL);
+                                    if (tokenReal != null)
+                                    {
+                                        position = tokens.IndexOf(tokenReal);
+                                        token = tokens[position];
+                                        state = GetState(token);
+                                        AddError("Неожиданный символ", textError, token.position);
+                                    }
+                                    else
+                                        AddErrorForMissingTokens(token, currentState);
+                                }
+                                
+                            }
                             continue;
                         }
                         else state = State.Equal;
@@ -110,39 +181,59 @@ namespace TextCompiler
                         {
                             var currentState = state;
                             state = GetState(token);
+                            textError = token.code;
                             while (position < tokens.Count - 1 && state != State.Equal && state != State.Num && state != State.End)
                             {
+                                textError += token.code;
                                 position++;
                                 token = tokens[position];
                                 state = GetState(token);
                             }
                             if (state != State.Equal)
-                                AddErrorForMissingTokens(token, currentState);
+                            {
+                                if (token.type != type.EQUAL)
+                                {
+                                    var tokenReal = IsValueString(tokens, type.EQUAL);
+                                    if (tokenReal != null)
+                                    {
+                                        position = tokens.IndexOf(tokenReal);
+                                        token = tokens[position];
+                                        state = GetState(token);
+                                        AddError("Неожиданный символ", textError, token.position);
+                                    }
+                                    else
+                                        AddErrorForMissingTokens(token, currentState);
+                                }
+                            }
                             continue;
                         }
                         else state = State.Num;
                         break;
 
                     case State.Num:
-                        if (token.type == type.SIGN)
+                        if (token.type == type.SIGN && isSymbol == false)
                         {
                             state = State.Num;
+                            isSymbol = true;
                             break;
                         }
                         else if (token.type != type.INT && token.type != type.DECIMAL)
                         {
-                            
+                            textError = null;
+                            int positionError = token.position;
                             state = GetState(token);
-                            while (position < tokens.Count - 1 && state != State.Num && state != State.End)
+                            while (position < tokens.Count - 1 && token.type != type.DECIMAL && token.type != type.INT && token.type != type.END)
                             {
+                                textError += token.code;
                                 position++;
                                 token = tokens[position];
                                 state = GetState(token);
                             }
+                            isSymbol = false;
+                            AddError("Неожиданный символ", textError, positionError);
                             if (state != State.Num)
                                 AddError("Ожидалось число", text[token.position].ToString(), token.position);
                             continue;
-
                         }
                         else state = State.End;
                         break;
@@ -167,11 +258,16 @@ namespace TextCompiler
                     return State.Id;
                 case type.ID:
                     return State.Id;
+                case type.SYMBOL:
+                    return State.IdRem;
                 case type.INT:
+                    isSymbol = false;
                     return State.Num;
-                case type.DECIMAL: 
+                case type.DECIMAL:
+                    isSymbol = false;
                     return State.Num;
                 case type.SIGN:
+                    isSymbol = true;
                     return State.Num;
                 case type.REAL: 
                     return State.Real;
@@ -183,10 +279,51 @@ namespace TextCompiler
                     return State.End;
             }
         }
+
+        private Token IsValueString(List<Token> tokens, type type)
+        {
+            foreach(var token in tokens)
+            {
+                if (token.type == type)
+                    return token;
+            }
+            return null;
+        }
         private void AddErrorForMissingTokens(Token token, State state)
         {
             switch(state)
             {
+                case State.Id:
+                    switch (token.type)
+                    {
+                        case type.SYMBOL:
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                            break;
+                        case type.REAL:
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            break;
+                        case type.EQUAL:
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            break;
+                        case type.INT:
+                        case type.DECIMAL:
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            break;
+                        case type.END:
+                            AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                            AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                            break;
+                    }
+                    break;
                 case State.IdRem:
                     switch (token.type)
                     {
