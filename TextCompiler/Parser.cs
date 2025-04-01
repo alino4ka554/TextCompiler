@@ -99,8 +99,19 @@ namespace TextCompiler
                             }
                             continue;
                         }
-                        else 
-                            state = State.IdRem;
+                        else
+                        {
+                            if (position == tokens.Count - 1)
+                            {
+                                AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            }
+                            else
+                                state = State.IdRem;
+                        }
                         break;
 
                     case State.IdRem:
@@ -116,7 +127,7 @@ namespace TextCompiler
                                 textError += token.code;
                                 state = GetState(token);
                             }
-                            
+
                             if (state != State.IdRem)
                             {
                                 if (token.type != type.SYMBOL)
@@ -132,13 +143,24 @@ namespace TextCompiler
                                     else
                                     {
                                         AddErrorForMissingTokens(token, currentState);
+                                        state = GetState(token);
                                     }
                                 }
-                                
+
                             }
                             continue;
                         }
-                        else state = State.Real;
+                        else
+                        {
+                            if (position == tokens.Count - 1)
+                            {
+                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            }
+                            else state = State.Real;
+                        }
                         break;
                     case State.Real:
                         if (token.type != type.REAL)
@@ -166,13 +188,26 @@ namespace TextCompiler
                                         AddError("Неожиданный символ", textError, token.position);
                                     }
                                     else
+                                    {
                                         AddErrorForMissingTokens(token, currentState);
+
+                                    }
                                 }
-                                
+
                             }
                             continue;
                         }
-                        else state = State.Equal;
+                        else
+                        {
+                            if (position == tokens.Count - 1)
+                            {
+                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            }
+                            else 
+                                state = State.Equal;
+                        }
                         
                         break;
 
@@ -207,7 +242,16 @@ namespace TextCompiler
                             }
                             continue;
                         }
-                        else state = State.Num;
+                        else
+                        {
+                            if (position == tokens.Count - 1)
+                            {
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            }
+                            else
+                                state = State.Num;
+                        }
                         break;
 
                     case State.Num:
@@ -235,12 +279,20 @@ namespace TextCompiler
                                 AddError("Ожидалось число", text[token.position].ToString(), token.position);
                             continue;
                         }
-                        else state = State.End;
+                        else
+                        {
+                            if (position == tokens.Count-1)
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            else
+                                state = State.End;
+                        }
                         break;
 
                     case State.End:
                         if (token.type != type.END)
                             AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                        tokens.RemoveRange(0, position+1);
+                        position = -1;
                         state = State.Start;
                         break;
                 }
