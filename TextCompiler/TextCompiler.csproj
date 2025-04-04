@@ -150,5 +150,11 @@
   <ItemGroup>
     <None Include="Properties\image\free-icon-compiler-8167773.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Help.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Справка.html" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

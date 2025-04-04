@@ -19,13 +19,14 @@ namespace TextCompiler
             if (Settings.language == "Русский")
             {
                 Text = "Справка";
-                webBrowser1.Navigate(Directory.GetCurrentDirectory().Replace("\\bin\\Debug", "") + "\\Properties\\Справка.html");
+                webBrowser1.DocumentText = Properties.Resources.Справка; 
             }
             else
             {
                 Text = "Help";
-                webBrowser1.Navigate(Directory.GetCurrentDirectory().Replace("\\bin\\Debug", "") + "\\Properties\\Help.html");
+                webBrowser1.DocumentText = Properties.Resources.Help;
             }
+
         }
     }
 }

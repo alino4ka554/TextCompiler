@@ -347,13 +347,15 @@ namespace TextCompiler
         {
             file?.textBox.SelectAll();
         }
-        public void Exit()
+        public bool Exit()
         {
             string question = (Settings.language == "Русский") ? "Сохранить изменения в файл" : "Save the changes to a file";
             if (System.IO.File.ReadAllText(file.path) != file.textBox.Text)
             {
-                DialogResult result = MessageBox.Show($"{question} {file.fileName}?", "Закрытие файла", MessageBoxButtons.YesNo);
-                if (result == DialogResult.Yes)
+                DialogResult result = MessageBox.Show($"{question} {file.fileName}?", "Закрытие файла", MessageBoxButtons.YesNoCancel);
+                if (result == DialogResult.Cancel)
+                    return false;
+                else if (result == DialogResult.Yes)
                 {
                     System.IO.File.WriteAllText(file.path, file.textBox.Text);
                 }
@@ -361,6 +363,7 @@ namespace TextCompiler
             countOpenedFiles--;
             files.Remove(file);
             tabControl1.TabPages.Remove(tabControl1.SelectedTab);
+            return true;
         }
 
         private void выходToolStripMenuItem_Click(object sender, EventArgs e)
@@ -373,11 +376,25 @@ namespace TextCompiler
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            foreach(var tabPages in tabControl1.TabPages)
+            if (tabControl1.TabPages.Count > 0)
             {
-                Exit();
+                bool canClose = true;
+
+                foreach (var f in files.ToList())
+                {
+                    file = f; 
+                    if (!Exit())
+                    {
+                        canClose = false;
+                        break;
+                    }
+                }
+
+                if (!canClose)
+                    e.Cancel = true;
             }
         }
+
 
         private void настройкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -468,8 +485,20 @@ namespace TextCompiler
                     dataGridView1.Rows.Add(row.ItemArray);
                 }
                 richTextBox1.Text = string.Join(" - ", scanner.codes);
+                if(scanner.ErrorPosition != null)
+                    HighlightErrors(file.textBox, Convert.ToInt32(scanner.ErrorPosition));
             }
         }
+
+        public void HighlightErrors(RichTextBox richTextBox, int errorPosition)
+        {
+            richTextBox.SelectAll();
+            richTextBox.SelectionBackColor = richTextBox.BackColor;
+
+            richTextBox.Select(errorPosition, 1);
+            richTextBox.SelectionBackColor = Color.Red;
+        }
+
         private void toolStripButton9_Click(object sender, EventArgs e)
         {
             Analyze();

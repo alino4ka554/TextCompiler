@@ -23,6 +23,7 @@ namespace TextCompiler
         public List<string> codes = new List<string> ();
         private bool afterConst = false;
         public DataTable dataTable { get; set; } = new DataTable();
+        public string ErrorPosition = null;
         public Scanner(string text)
         {
             Text = text;
@@ -118,6 +119,7 @@ namespace TextCompiler
                         break;
                     case 5:
                         AddToken(12, "ERROR: недопустимый символ", str[position].ToString(), position, position + 1);
+                        ErrorPosition = position.ToString();
                         return;
                     case 6:
                         codes.Add("OUT");

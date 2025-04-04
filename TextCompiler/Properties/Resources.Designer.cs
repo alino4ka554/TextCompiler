@@ -141,6 +141,29 @@ namespace TextCompiler.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
+        ///  &lt;head&gt;
+        ///   &lt;title&gt;Guide&lt;/title&gt;
+        ///  &lt;/head&gt;
+        ///  &lt;body&gt;
+        ///    &lt;h1 align=center&gt;Help&lt;/h1&gt;
+        ///    &lt;font size=4&gt;
+        ///	&lt;h2&gt;Working with Files&lt;/h2&gt;
+        ///	&lt;h3&gt;Creating a New File&lt;/h3&gt;
+        ///	&lt;p&gt;In the &lt;b&gt;File&lt;/b&gt; tab, select &lt;i&gt;New&lt;/i&gt; (Ctrl+N)&lt;/p&gt;
+        ///	&lt;h3&gt;Opening a File&lt;/h3&gt;
+        ///	&lt;p&gt;In the &lt;b&gt;File&lt;/b&gt; tab, select &lt;i&gt;Open&lt;/i&gt; (Ctrl+O), or drag and drop a file into the editor window&lt;/p&gt;
+        ///	&lt;h3&gt;Saving a File&lt;/h3&gt;
+        ///	&lt;p&gt;In the &lt;b&gt;File&lt;/b&gt; tab, select &lt;i&gt;Save&lt;/i&gt; (Ctrl+S) or &lt;i&gt;Save As&lt;/i&gt; to save under a different [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string Help {
+            get {
+                return ResourceManager.GetString("Help", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap helpbutton_85772 {
@@ -207,6 +230,30 @@ namespace TextCompiler.Properties {
             get {
                 object obj = ResourceManager.GetObject("info", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
+        ///  &lt;head&gt;
+        ///&lt;meta charset=&quot;UTF-8&quot;&gt;
+        ///   &lt;title&gt;Руководство&lt;/title&gt;
+        ///  &lt;/head&gt;
+        ///  &lt;body&gt;
+        ///    &lt;h1 align=center&gt;Справка&lt;/h1&gt;
+        ///    &lt;font size=4&gt;
+        ///	&lt;h2&gt;Работа с файлами&lt;/h2&gt;
+        ///	&lt;h3&gt;Создание нового файла&lt;/h3&gt;
+        ///	&lt;p&gt;Во вкладке &lt;b&gt;Файл&lt;/b&gt; выберите &lt;i&gt;Создать&lt;/i&gt; (Ctrl+N)&lt;/p&gt;
+        ///	&lt;h3&gt;Открытие файла&lt;/h3&gt;
+        ///	&lt;p&gt;Во вкладке &lt;b&gt;Файл&lt;/b&gt; выберите &lt;i&gt;Открыть&lt;/i&gt; (Ctrl+O), либо перетащите файл в окно редактирования &lt;/p&gt;
+        ///	&lt;h3&gt;Сохранение файла&lt;/h3&gt;
+        ///	&lt;p&gt;Во вкладке &lt;b&gt;Файл&lt;/b&gt; выберите &lt;i&gt;Сохранить&lt;/i&gt; (Ctr [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string Справка {
+            get {
+                return ResourceManager.GetString("Справка", resourceCulture);
             }
         }
     }

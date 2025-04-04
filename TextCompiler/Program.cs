@@ -13,6 +13,7 @@ namespace TextCompiler
         public static string language = "Русский";
         public static Dictionary<string, string> translations = new Dictionary<string, string>
         {
+            { "Language processor",  "Языковой процессор"},
             { "File", "Файл" },
             { "Edit", "Правка" },
             { "Text", "Текст" },
