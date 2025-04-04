@@ -72,6 +72,7 @@ namespace TextCompiler
                 switch(status)
                 {
                     case 0:
+
                         status = GetStatus(Text[position]);
                         if (status == 2 && !afterConst)
                             position++;

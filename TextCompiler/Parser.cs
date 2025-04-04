@@ -52,16 +52,48 @@ namespace TextCompiler
                     case State.Start:
                         if (token.type != type.CONST)
                         {
-                            AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position);
+                            if (tokens.Count > 2)
+                            {
+                                if (token.code + tokens[position + 1].code == "const")
+                                    position++;
+                                else
+                                    AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position);
+                            }
+                            else
+                                AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position);
                             state = State.Id;
                         }
                         else
-                            state = State.Space;
+                        {
+                            if (position == tokens.Count - 1)
+                            {
+                                AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            }
+                            else
+                                state = State.Space;
+                        }
                         break;
 
                     case State.Space:
                         if (token.type != type.SPACE)
                             AddError("Ожидалось ключевое слово 'const'", text[token.position].ToString(), token.position);
+                        else
+                        {
+                            if (position == tokens.Count - 1)
+                            {
+                                AddError("Ожидался идентификатор", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось :", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                                AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
+                                AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                                AddError("Ожидалась ';'", text[token.position].ToString(), token.position);
+                            }
+                        }
                         state = State.Id;
                         break;
 
@@ -95,7 +127,6 @@ namespace TextCompiler
                                         AddErrorForMissingTokens(token, currentState);
                                     }
                                 }
-
                             }
                             continue;
                         }
@@ -165,6 +196,15 @@ namespace TextCompiler
                     case State.Real:
                         if (token.type != type.REAL)
                         {
+                            if (tokens.Count > 2)
+                            {
+                                if (token.code + tokens[position + 1].code == "real")
+                                    position++;
+                                else
+                                    AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
+                            }
+                            else
+                                AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
                             var currentState = state;
                             state = GetState(token);
                             textError = token.code;
@@ -307,7 +347,7 @@ namespace TextCompiler
             switch(token.type)
             {
                 case type.CONST:
-                    return State.Id;
+                    return State.Start;
                 case type.ID:
                     return State.Id;
                 case type.SYMBOL:
@@ -373,6 +413,10 @@ namespace TextCompiler
                             AddError("Ожидалось ключевое слово 'real'", text[token.position].ToString(), token.position);
                             AddError("Ожидался оператор присваивания", text[token.position].ToString(), token.position);
                             AddError("Ожидалось число", text[token.position].ToString(), token.position);
+                            break;
+                        default:
+                            token.type = type.END;
+                            AddErrorForMissingTokens(token, state);
                             break;
                     }
                     break;
