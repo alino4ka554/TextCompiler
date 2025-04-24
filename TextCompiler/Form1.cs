@@ -461,10 +461,14 @@ namespace TextCompiler
             dataGridView1.Rows.Clear();
             if (file != null)
             {
-                Parser parser = new Parser(file.textBox.Text);
+                /*Parser parser = new Parser(file.textBox.Text);
                 parser.Analyze();
-                var sortedErrors = parser.GetErrors().OrderBy(e => e.Position).ToList();
-                if(sortedErrors.Count > 0)
+                var sortedErrors = parser.GetErrors().OrderBy(e => e.Position).ToList();*/ //код для 1-4 лабы
+                
+                RecursiveParser recursiveParser = new RecursiveParser(file.textBox.Text);
+                recursiveParser.Parse();
+                var sortedErrors = recursiveParser.Errors.OrderBy(e => e.Position).ToList();
+                if (sortedErrors.Count > 0)
                     tabControl2.TabPages[0].Text = $"Обнаружено {sortedErrors.Count} ошибок";
                 else
                     tabControl2.TabPages[0].Text = $"Ошибок не обнаружено";
