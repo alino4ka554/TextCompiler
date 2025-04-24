@@ -18,7 +18,7 @@ namespace TextCompiler
 
         public Lexer(string text)
         {
-            Text = text.Replace("\t", "").Replace("\n", "").Replace(" ", "");
+            Text = text;
         }
         public void AddToken(string text, int position)
         {

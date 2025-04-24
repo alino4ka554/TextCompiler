@@ -459,6 +459,7 @@ namespace TextCompiler
         {
             dataGridView1.DataSource = null;
             dataGridView1.Rows.Clear();
+            richTextBox1.Text = "";
             if (file != null)
             {
                 /*Parser parser = new Parser(file.textBox.Text);
@@ -471,7 +472,19 @@ namespace TextCompiler
                 if (sortedErrors.Count > 0)
                     tabControl2.TabPages[0].Text = $"Обнаружено {sortedErrors.Count} ошибок";
                 else
+                {
                     tabControl2.TabPages[0].Text = $"Ошибок не обнаружено";
+                    PolishNotation polishNotation = new PolishNotation(recursiveParser.Tokens);
+                    polishNotation.WritePolishNotation();
+                    richTextBox1.Text = "ПОЛИЗ: ";
+                    foreach (var str in polishNotation.PolishVersion)
+                    {
+                        richTextBox1.Text += str;
+                    }
+                    polishNotation.CalculationPolishNotation();
+                    if (polishNotation.Operands.Count == 1)
+                        richTextBox1.Text += $"\nРезультат: {polishNotation.Operands.First().ToString()}";
+                }
                 foreach (var error in sortedErrors)
                 {
                     dataGridView1.Rows.Add(error.Message, error.BeginOfError, error.Position);
