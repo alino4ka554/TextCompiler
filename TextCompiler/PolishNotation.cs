@@ -35,11 +35,9 @@ namespace TextCompiler
                                 Operations.Push(token.code);
                             else
                             {
-                                string operation = "";
-                                while (Operations.Count > 0 && GetPriority(operation) >= GetPriority(token.code))
+                                while (Operations.Count > 0 && GetPriority(Operations.Peek()) >= GetPriority(token.code))
                                 {
-                                    operation = Operations.Pop();
-                                    PolishVersion.Add(operation);
+                                    PolishVersion.Add(Operations.Pop());
                                 }
                                 Operations.Push(token.code);
                             }
