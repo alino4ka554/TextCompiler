@@ -487,7 +487,7 @@ namespace TextCompiler
                 }
                 foreach (var error in sortedErrors)
                 {
-                    dataGridView1.Rows.Add(error.Message, error.BeginOfError, error.Position);
+                    dataGridView1.Rows.Add(error.Message, error.BeginOfError, error.Position+1);
                 }
                 HighlightErrors(file.textBox, sortedErrors);
             }
@@ -499,7 +499,7 @@ namespace TextCompiler
 
             foreach (var error in errors)
             {
-                richTextBox.Select(error.Position, 1);
+                richTextBox.Select(error.Position+1, 1);
                 richTextBox.SelectionBackColor = Color.Red; 
             }
         }

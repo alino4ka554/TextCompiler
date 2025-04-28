@@ -49,7 +49,7 @@ namespace TextCompiler
                 else if (Tokens[position].code == ")" && !flag)
                 {
                     AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position);
-                    position++; // !!! ДВИГАЕМСЯ ДАЛЬШЕ !!!
+                    position++; 
                 }
                 else break;
             }
