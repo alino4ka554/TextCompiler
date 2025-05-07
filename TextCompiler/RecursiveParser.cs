@@ -11,7 +11,8 @@ namespace TextCompiler
     {
         public List<Token> Tokens = new List<Token>();
         public List<Error> Errors = new List<Error>();
-        public bool flag = false;
+        int i = -1;
+        public List<bool> flags = new List<bool>();
         public string Text;
         private int position = 0;
 
@@ -46,9 +47,9 @@ namespace TextCompiler
                     position++;
                     T();
                 }
-                else if (Tokens[position].code == ")" && !flag)
+                else if (Tokens[position].code == ")" && i == -1)
                 {
-                    AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position);
+                    AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position+1);
                     position++; 
                 }
                 else break;
@@ -64,9 +65,9 @@ namespace TextCompiler
                     position++;
                     O();
                 }
-                else if (Tokens[position].code == ")" && !flag)
+                else if (Tokens[position].code == ")" && i == -1)
                 {
-                    AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position);
+                    AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position+1);
                     position++; 
                 }
                 else break;
@@ -81,15 +82,17 @@ namespace TextCompiler
             else if (Tokens[position].code == "(")
             {
                 position++;
-                flag = true;
+                i++;
+                flags.Add(true);
                 E();
-                flag = false;
                 if (position >= Tokens.Count)
                     AddError("Ожидалась закрывающаяся скобка ')'", Tokens[Tokens.Count - 1].code, Tokens[Tokens.Count - 1].position);
                 else if (Tokens[position].code != ")")
                     AddError("Ожидалась закрывающаяся скобка ')'", Tokens[position].code, Tokens[position].position);
                 else 
                     position++;
+                flags.RemoveAt(i);
+                i--;
             }
             else
             {

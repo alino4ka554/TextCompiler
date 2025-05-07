@@ -28,6 +28,7 @@ namespace TextCompiler
         public Form1()
         {
             InitializeComponent();
+            toolStripComboBox1.SelectedIndex = 0;
             openFileDialog1.Filter = filter;
             saveFileDialog1.Filter = filter;
             tabControl1.SelectedIndexChanged += TabControl1_SelectedIndexChanged;
@@ -459,47 +460,39 @@ namespace TextCompiler
         {
             dataGridView1.DataSource = null;
             dataGridView1.Rows.Clear();
-            richTextBox1.Text = "";
+            dataGridView2.Rows.Clear();
             if (file != null)
             {
-                /*Parser parser = new Parser(file.textBox.Text);
-                parser.Analyze();
-                var sortedErrors = parser.GetErrors().OrderBy(e => e.Position).ToList();*/ //код для 1-4 лабы
-                
-                RecursiveParser recursiveParser = new RecursiveParser(file.textBox.Text);
-                recursiveParser.Parse();
-                var sortedErrors = recursiveParser.Errors.OrderBy(e => e.Position).ToList();
-                if (sortedErrors.Count > 0)
-                    tabControl2.TabPages[0].Text = $"Обнаружено {sortedErrors.Count} ошибок";
-                else
+                RegularExpression regularExpression = new RegularExpression();
+                regularExpression.SearchRegularExpression(file.textBox.Text, toolStripComboBox1.SelectedIndex);
+                var substrings = regularExpression.Substrings;
+                if (substrings.Count > 0)
                 {
-                    tabControl2.TabPages[0].Text = $"Ошибок не обнаружено";
-                    PolishNotation polishNotation = new PolishNotation(recursiveParser.Tokens);
-                    polishNotation.WritePolishNotation();
-                    richTextBox1.Text = "ПОЛИЗ: ";
-                    foreach (var str in polishNotation.PolishVersion)
+                    foreach (var substring in substrings)
                     {
-                        richTextBox1.Text += str;
+                        dataGridView1.Rows.Add(substring.Value, substring.Key + 1);
                     }
-                    polishNotation.CalculationPolishNotation();
-                    if (polishNotation.Operands.Count == 1)
-                        richTextBox1.Text += $"\nРезультат: {polishNotation.Operands.First().ToString()}";
                 }
-                foreach (var error in sortedErrors)
+                HighlightErrors(file.textBox, substrings);
+                if (toolStripComboBox1.SelectedIndex == 2)
                 {
-                    dataGridView1.Rows.Add(error.Message, error.BeginOfError, error.Position+1);
+                    regularExpression.SearchMAC(file.textBox.Text);
+                    var substringsMAC = regularExpression.Substrings;
+                    foreach (var substring in substringsMAC)
+                    {
+                        dataGridView2.Rows.Add(substring.Value, substring.Key + 1);
+                    }
                 }
-                HighlightErrors(file.textBox, sortedErrors);
             }
         }
-        public void HighlightErrors(RichTextBox richTextBox, List<Error> errors)
+        public void HighlightErrors(RichTextBox richTextBox, Dictionary<int, string> substrings)
         {
             richTextBox.SelectAll();
             richTextBox.SelectionBackColor = richTextBox.BackColor;
 
-            foreach (var error in errors)
+            foreach (var substring in substrings)
             {
-                richTextBox.Select(error.Position+1, 1);
+                richTextBox.Select(substring.Key, substring.Value.Length);
                 richTextBox.SelectionBackColor = Color.Red; 
             }
         }
