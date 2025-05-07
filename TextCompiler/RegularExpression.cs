@@ -31,61 +31,60 @@ namespace TextCompiler
             return char.IsDigit(c) || (char.ToLower(c) >= 'a' && char.ToLower(c) <= 'f');
         }
 
-        public void SearchMAC(string text)
+        public void SearchMAC(string _text)
         {
+            string text = _text.Replace("\t", " ").Replace("\n", " ");
             Substrings.Clear();
-            int position = 0;
-            int state = 0;
-            while (position < text.Length)
+            for (int start = 0; start <= text.Length - 17; start++)  
             {
-                char c = text[position];
-
-                switch (state)
+                int state = 0;
+                int pos = start;
+                while (pos < text.Length && state != -1)
                 {
-                    case 0:
-                    case 3:
-                    case 6:
-                    case 9:
-                    case 12:
-                    case 15:
-                        if (IsHexChar(c)) state++;
-                        else state = -1;
-                        break;
-                    case 1:
-                    case 4:
-                    case 7:
-                    case 10:
-                    case 13:
-                    case 16:
-                        if (IsHexChar(c)) state++;
-                        else state = -1;
-                        break;
-                    case 2:
-                    case 5:
-                    case 8:
-                    case 11:
-                    case 14:
-                        if (c == '-')
-                            state++;
-                        else state = -1;
-                        break;
+                    char c = text[pos];
+                    switch (state)
+                    {
+                        case 0:
+                        case 3:
+                        case 6:
+                        case 9:
+                        case 12:
+                        case 15:
+                            if (IsHexChar(c)) state++;
+                            else state = -1;
+                            break;
+                        case 1:
+                        case 4:
+                        case 7:
+                        case 10:
+                        case 13:
+                        case 16:
+                            if (IsHexChar(c)) state++;
+                            else state = -1;
+                            break;
+                        case 2:
+                        case 5:
+                        case 8:
+                        case 11:
+                        case 14:
+                            if (c == '-') state++;
+                            else state = -1;
+                            break;
+                        default:
+                            state = -1;
+                            break;
+                    }
 
-                    default:
-                        state = -1;
-                        break;
+                    if (state == 17)
+                    {
+                        Substrings[start] = text.Substring(start, 17);
+                        break; 
+                    }
+                    pos++;
                 }
-
-                if (state == -1)
-                    break;
-                if(state == 17)
-                {
-                    Substrings.Add(position - 16, text.Substring(position - 16, position + 1));
-                    state = 0;
-                }
-                position++;
             }
-
         }
+
     }
 }
 
