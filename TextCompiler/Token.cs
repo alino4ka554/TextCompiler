@@ -13,13 +13,15 @@ namespace TextCompiler
     public class Token
     {
         public type type;
-        public string code;
+        public char name;
+        public int code;
         public int position;
-        public Token(type _type, string _code, int _position)
+        public Token(type _type, char _name, int _position, int _code)
         {
             type = _type;
-            code = _code;
+            name = _name;
             position = _position;
+            code = _code;
         }
     }
     

@@ -11,7 +11,7 @@ namespace TextCompiler
         public string Text;
         private List<char> keyWords = new List<char>
         {
-            '*', '/', '+', '-', '(', ')'
+            '+', '-', '*', '/', '_', '=', '>', '&', '|', '~', '$', '%', '\\', '@', '[', ']'
         };
         public List<Token> Tokens = new List<Token>();
         public List<Error> Errors = new List<Error>();
@@ -20,15 +20,15 @@ namespace TextCompiler
         {
             Text = text;
         }
-        public void AddToken(string text, int position)
+        public void AddToken(char text, int position, int code)
         {
-            Tokens.Add(new Token(type.ID, text, position));    
+            Tokens.Add(new Token(type.ID, text, position, code + 1));    
         }
         public void ErrorReading(ref int position)
         {
             int startIndex = position;
             string errorText = null;
-            while (position < Text.Length && !Char.IsDigit(Text[position]) && !keyWords.Contains(Text[position]))
+            while (position < Text.Length && !keyWords.Contains(Text[position]))
             {
                 errorText += Text[position].ToString();
                 position++;
@@ -40,24 +40,9 @@ namespace TextCompiler
             int position = 0;
             while(position < Text.Length)
             {
-                if (Char.IsDigit(Text[position]))
+                if(keyWords.Contains(Text[position]))
                 {
-                    int startPosition = position;
-                    string number = "";
-                    while (position < Text.Length)
-                    {
-                        if (Char.IsDigit(Text[position]))
-                            number += Text[position++];
-                        else if (!keyWords.Contains(Text[position]))
-                            ErrorReading(ref position);
-                        else break;
-                    }
-                    AddToken(number, startPosition);
-                    continue;
-                }
-                else if(keyWords.Contains(Text[position]))
-                {
-                    AddToken(Text[position].ToString(), position);
+                    AddToken(Text[position], position, keyWords.IndexOf(Text[position]));
                     position++;
                     continue;
                 }

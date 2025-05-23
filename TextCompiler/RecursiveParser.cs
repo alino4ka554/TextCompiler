@@ -10,6 +10,11 @@ namespace TextCompiler
     public class RecursiveParser
     {
         public List<Token> Tokens = new List<Token>();
+        public List<string> Out = new List<string>();
+        private List<char> keyWords = new List<char>
+        {
+            '+', '-', '*', '/', '_', '=', '>', '&', '|', '~', '$', '%', '\\', '@',
+        };
         public List<Error> Errors = new List<Error>();
         int i = -1;
         public List<bool> flags = new List<bool>();
@@ -31,73 +36,48 @@ namespace TextCompiler
         }
         public void Parse()
         {
-            E();
-            if (position < Tokens.Count)
-            {
-                    AddError("Лишние символы после конца выражения", Tokens[position].code, Tokens[position].position);
-            }
+            Program();
         }
-        public void E()
+        public void Program()
         {
-            T();
-            while (position < Tokens.Count)
+            Out.Add("Program");
+            if (position >= Tokens.Count)
             {
-                if (Tokens[position].code == "+" || Tokens[position].code == "-")
-                {
-                    position++;
-                    T();
-                }
-                else if (Tokens[position].code == ")" && i == -1)
-                {
-                    AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position+1);
-                    position++; 
-                }
-                else break;
+                Out.Add("ε");
+                return;
             }
-        }
-        public void T()
-        {
-            O();
-            while (position < Tokens.Count)
+            else if (Tokens[position].name == ']')
             {
-                if (Tokens[position].code == "*" || Tokens[position].code == "/")
-                {
-                    position++;
-                    O();
-                }
-                else if (Tokens[position].code == ")" && i == -1)
-                {
-                    AddError("Закрывающая скобка без соответствующей открывающей", Tokens[position].code, Tokens[position].position+1);
-                    position++; 
-                }
-                else break;
-            }
-        }
-        public void O()
-        {
-            if(position >= Tokens.Count)
-                AddError("Ожидался операнд", Tokens[Tokens.Count - 1].code, Tokens[Tokens.Count - 1].position);
-            else if (Int32.TryParse(Tokens[position].code, out int result) == true)
-                position++;
-            else if (Tokens[position].code == "(")
-            {
-                position++;
-                i++;
-                flags.Add(true);
-                E();
-                if (position >= Tokens.Count)
-                    AddError("Ожидалась закрывающаяся скобка ')'", Tokens[Tokens.Count - 1].code, Tokens[Tokens.Count - 1].position);
-                else if (Tokens[position].code != ")")
-                    AddError("Ожидалась закрывающаяся скобка ')'", Tokens[position].code, Tokens[position].position);
-                else 
-                    position++;
-                flags.RemoveAt(i);
-                i--;
+                Out.Add("ε");
             }
             else
             {
-                AddError("Ожидался операнд", Tokens[position].code, Tokens[position].position);
-
+                Instr();
+                Program();
+            }
+        }
+        public void Instr()
+        {
+            if (position >= Tokens.Count)
+                return;
+            Out.Add("Instr");
+            if (keyWords.Contains(Tokens[position].name))
+            {
+                Out.Add(Tokens[position].name.ToString());
+                position++;
+            }
+            else if (position < Tokens.Count && Tokens[position].name == '[')
+            {
+                Out.Add(Tokens[position].name.ToString());
+                position++;
+                Program();
+                if (position >= Tokens.Count)
+                    AddError("Ожидалась закрывающаяся скобка ']'", Tokens[Tokens.Count - 1].name.ToString(), Tokens[Tokens.Count - 1].position);
+                else if (Tokens[position].name.ToString() != "]")
+                    AddError("Ожидалась закрывающаяся скобка ']'", Tokens[position].name.ToString(), Tokens[position].position);
+                else
+                    Out.Add(Tokens[position].name.ToString());
+                position++;
             }
         }
     }

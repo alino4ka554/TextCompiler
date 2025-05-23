@@ -458,42 +458,33 @@ namespace TextCompiler
         }
         public void Analyze()
         {
-            dataGridView1.DataSource = null;
-            dataGridView1.Rows.Clear();
+            dataGridView2.DataSource = null;
             dataGridView2.Rows.Clear();
             if (file != null)
             {
-                RegularExpression regularExpression = new RegularExpression();
-                regularExpression.SearchRegularExpression(file.textBox.Text, toolStripComboBox1.SelectedIndex);
-                var substrings = regularExpression.Substrings;
-                if (substrings.Count > 0)
+                RecursiveParser parser = new RecursiveParser(file.textBox.Text);
+                parser.Parse();
+                var output = parser.Out;
+                if (output.Count > 0)
+                    richTextBox1.Text = string.Join(" - ", output);
+                foreach (var error in parser.Errors)
                 {
-                    foreach (var substring in substrings)
-                    {
-                        dataGridView1.Rows.Add(substring.Value, substring.Key + 1);
-                    }
+                    dataGridView2.Rows.Add(error.Message, error.BeginOfError, error.Position);
                 }
-                HighlightErrors(file.textBox, substrings);
-                if (toolStripComboBox1.SelectedIndex == 2)
-                {
-                    regularExpression.SearchMAC(file.textBox.Text);
-                    var substringsMAC = regularExpression.Substrings;
-                    foreach (var substring in substringsMAC)
-                    {
-                        dataGridView2.Rows.Add(substring.Value, substring.Key + 1);
-                    }
-                }
+                foreach (var token in parser.Tokens)
+                    dataGridView1.Rows.Add(token.name, token.code, token.position + 1);
+                HighlightErrors(file.textBox, parser.Errors);
             }
         }
-        public void HighlightErrors(RichTextBox richTextBox, Dictionary<int, string> substrings)
+        public void HighlightErrors(RichTextBox richTextBox, List<Error> errors)
         {
             richTextBox.SelectAll();
             richTextBox.SelectionBackColor = richTextBox.BackColor;
 
-            foreach (var substring in substrings)
+            foreach (var error in errors)
             {
-                richTextBox.Select(substring.Key, substring.Value.Length);
-                richTextBox.SelectionBackColor = Color.Red; 
+                richTextBox.Select(error.Position, 1);
+                richTextBox.SelectionBackColor = Color.Red;
             }
         }
         private void toolStripButton9_Click(object sender, EventArgs e)

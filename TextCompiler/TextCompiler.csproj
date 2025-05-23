@@ -67,13 +67,10 @@
       <DependentUpon>Help.cs</DependentUpon>
     </Compile>
     <Compile Include="Lexer.cs" />
-    <Compile Include="Parser.cs" />
-    <Compile Include="PolishNotation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecursiveParser.cs" />
     <Compile Include="RegularExpression.cs" />
-    <Compile Include="Scanner.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SettingsForm.cs">
       <SubType>Form</SubType>
