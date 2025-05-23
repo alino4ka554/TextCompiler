@@ -1,41 +1,32 @@
 # Постановка задачи
 
-Реализовать алгоритм поиска в тексте подстрок, соответствующих заданным регулярным выражениям.
+В соответствии с вариантом для заданной грамматики необходимо разработать и реализовать алгоритм синтаксического анализа на основе метода рекурсивного спуска.
 
 ## Задание
 
-### 1 блок 
-15. Построить РВ для поиска идентификатора, который может начинаться только с буквы a-zA-Z, знака доллара $ или подчеркивания _, оставшаяся часть символов идентификатора представляют собой только буквы a-zA-Z.
-
-Решение: R = (_|$|Letter)(Letter)*, 
-
-Letter = {a...z, A...Z}
-### 2 блок
-16. Построить РВ, описывающее ФИО человека на русском языке (фамилия, имя и отчество полностью).
-
-Решение: R = Letter(letter)+ Letter(letter)+ Letter(letter)+, 
-
-Letter = {A...Я}, letter = {а...я} 
-### 3 блок
-4. Построить РВ, описывающее MAC-адрес.
-
-Решение: R = (HH-)⁵HH, 
-
-H = {0...9, a...f}
-## Примеры допустимых строк:
-
-- `$init`
-- `Фамилия Имя Отчество`
-- `05-fd-2a-9b-00-cb`
+Для грамматики G[Program] разработать и реализовать алгоритм
+анализа на основе метода рекурсивного спуска.
+```text
+G[Program]:
+1. Program -> ε | Instr Program
+2. Instr -> '+' | '-' | '*' | '/' | '_' | '=' | '>' | '&' | '|' | '~' | '$' | '%' | '\' | '@' | '['
+Program ']'
+```
+Язык:
+L = { (wⁿ ∪ { [wⁿ] | w ∈ {+,-,\*,/,\_,=,>,&,|,\~,$,%,\\,@}, n >= 0)ⁿ | w ∈ {+,-,*,/,_,=,>,&,|,~,$,%,\\,@}, n >= 0 }
 
 ## Тестовые примеры
-![image](https://github.com/user-attachments/assets/1ddc4f4a-3de2-4d53-b9d9-f2e4c2488d38)
-![image](https://github.com/user-attachments/assets/d6983f5a-b318-4fce-949d-fb38d5370bc8)
-![image](https://github.com/user-attachments/assets/11acb4a5-ae3d-41a2-b628-3acc902d6e32)
-## Граф автомата для задачи из 3 блока
-![граф для 6 лабы](https://github.com/user-attachments/assets/9c8c301c-4837-428c-b0ca-25744eee0420)
-## Тестовый пример реализации поиска подстрок с помощью автомата:
-![image](https://github.com/user-attachments/assets/447b527f-7466-4236-93a6-929986537277)
+![image](https://github.com/user-attachments/assets/0ac6114b-d2ad-4c20-ae40-6ee20034980b)
+![image](https://github.com/user-attachments/assets/d30cb3fe-a4e6-4670-abae-c80fa1264a74)
+![image](https://github.com/user-attachments/assets/b84da5e5-dbbc-46ed-ac90-9efeb74e8111)
+![image](https://github.com/user-attachments/assets/c6aa4890-c45d-4aa9-8468-b21cb1690263)
+
+## Лексер
+### Диаграмма
+![image](https://github.com/user-attachments/assets/2210f61e-b5d7-4fcd-92a4-527055a76e60)
+### Тестовые примеры
+![image](https://github.com/user-attachments/assets/8554e2a8-d18b-4e88-af8d-304176fdceb5)
+![image](https://github.com/user-attachments/assets/e09d9da0-9035-486e-aed1-a2cefb37d153)
 
 # Справка
 
